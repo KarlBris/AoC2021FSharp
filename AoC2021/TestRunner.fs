@@ -47,41 +47,37 @@ module TestRunner =
     let input1 = getInput 1
 
     let examples1_1 =
-        [| @"199
-    200
-    208
-    210
-    200
-    207
-    240
-    269
-    260
-    263" |]
+        [| "199\n200\n208\n210\n200\n207\n240\n269\n260\n263" |]
 
     let exampleResults1_1 = [| "7" |]
 
     let examples1_2 =
-        [| @"199
-    200
-    208
-    210
-    200
-    207
-    240
-    269
-    260
-    263" |]
+        [| "199\n200\n208\n210\n200\n207\n240\n269\n260\n263" |]
 
     let exampleResults1_2 = [| "5" |]
 
 
     // Day 2
-    let input2 = "" //getInput 2
+    let input2 = getInput 2
 
-    let examples2_1 = [||]
+    let examples2_1 =
+        [| "forward 5\ndown 5\nforward 8\nup 3\ndown 8\nforward 2" |]
 
-    let exampleResults2_1 = [||]
+    let exampleResults2_1 = [| "150" |]
 
-    let examples2_2 = [||]
+    let examples2_2 =
+        [| "forward 5\ndown 5\nforward 8\nup 3\ndown 8\nforward 2" |]
 
-    let exampleResults2_2 = [||]
+    let exampleResults2_2 = [| "900" |]
+
+
+    // Day 3
+    //let input3 = getInput 3
+
+    let examples3_1 = [| "" |]
+
+    let exampleResults3_1 = [| "" |]
+
+    let examples3_2 = [| "" |]
+
+    let exampleResults3_2 = [| "" |]

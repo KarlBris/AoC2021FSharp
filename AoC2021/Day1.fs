@@ -8,7 +8,7 @@ module Day1 =
 
     let part1 (input: string) : string =
         input
-        |> Utils.lines
+        |> lines
         |> Array.map int
         |> Array.pairwise
         |> Array.map isIncreasing
@@ -17,7 +17,7 @@ module Day1 =
 
     let part2 (input: string) : string =
         input
-        |> Utils.lines
+        |> lines
         |> Array.map int
         |> Array.windowed 3
         |> Array.map Array.sum
