@@ -51,8 +51,7 @@ module TestRunner =
 
     let exampleResults1_1 = [| "7" |]
 
-    let examples1_2 =
-        [| "199\n200\n208\n210\n200\n207\n240\n269\n260\n263" |]
+    let examples1_2 = examples1_1
 
     let exampleResults1_2 = [| "5" |]
 
@@ -65,19 +64,19 @@ module TestRunner =
 
     let exampleResults2_1 = [| "150" |]
 
-    let examples2_2 =
-        [| "forward 5\ndown 5\nforward 8\nup 3\ndown 8\nforward 2" |]
+    let examples2_2 = examples2_1
 
     let exampleResults2_2 = [| "900" |]
 
 
     // Day 3
-    //let input3 = getInput 3
+    let input3 = getInput 3
 
-    let examples3_1 = [| "" |]
+    let examples3_1 =
+        [| "00100\n11110\n10110\n10111\n10101\n01111\n00111\n11100\n10000\n11001\n00010\n01010" |]
 
-    let exampleResults3_1 = [| "" |]
+    let exampleResults3_1 = [| "198" |]
 
-    let examples3_2 = [| "" |]
+    let examples3_2 = examples3_1
 
-    let exampleResults3_2 = [| "" |]
+    let exampleResults3_2 = [| "230" |]
