@@ -4,6 +4,7 @@ open Utils
 
 module Day3 =
 
+    // TODO: use List.transpose here instead, you cretin
     let rec transpose =
         function
         | (_ :: _) :: _ as M ->
