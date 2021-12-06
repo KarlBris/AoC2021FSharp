@@ -103,7 +103,7 @@ module TestRunner =
 
 
     // Day 5
-    let input5 = getInput 5
+    //let input5 = getInput 5
 
     let examples5_1 =
         [| "0,9 -> 5,9\n8,0 -> 0,8\n9,4 -> 3,4\n2,2 -> 2,1\n7,0 -> 7,4\n6,4 -> 2,0\n0,9 -> 2,9\n3,4 -> 1,4\n0,0 -> 8,8\n5,5 -> 8,2" |]
@@ -113,3 +113,15 @@ module TestRunner =
     let examples5_2 = examples5_1
 
     let exampleResults5_2 = [| "12" |]
+
+
+    // Day 6
+    let input6 = getInput 6
+
+    let examples6_1 = [| "3,4,3,1,2" |]
+
+    let exampleResults6_1 = [| "5934" |]
+
+    let examples6_2 = examples6_1
+
+    let exampleResults6_2 = [| "26984457539" |]

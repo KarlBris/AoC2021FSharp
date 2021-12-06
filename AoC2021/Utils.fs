@@ -12,3 +12,6 @@ module Utils =
     let words (input: string) : string [] =
         input.Split([| " "; "\t" |], StringSplitOptions.RemoveEmptyEntries)
         |> Array.map stringTrim
+
+    let commas (input: string) : string [] =
+        input.Split([| ", "; "," |], StringSplitOptions.RemoveEmptyEntries)
