@@ -129,3 +129,15 @@ module TestRunner =
     let examples6_2 = examples6_1
 
     let exampleResults6_2 = [| "26984457539" |]
+
+
+    // Day 7
+    let input7 = getInput 7
+
+    let examples7_1 = [| "16,1,2,0,4,2,7,1,2,14" |]
+
+    let exampleResults7_1 = [| "37" |]
+
+    let examples7_2 = examples7_1
+
+    let exampleResults7_2 = [| "168" |]
