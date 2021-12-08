@@ -9,7 +9,9 @@ module TestRunner =
         let filename = $"..\..\..\inputs\input_day{day}.txt"
 
         if File.Exists filename then
-            File.ReadAllText filename
+            filename
+            |> File.ReadAllText
+            |> String.filter (fun c -> c <> '\r')
         else
             failwith $"Input file {filename} not found"
 
