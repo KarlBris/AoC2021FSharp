@@ -22,7 +22,7 @@ module TestRunner =
     let printStatus ((res, expectedRes, success): string * string * bool) =
         printfn "%s! Got %s, expected %s." (if success then "Success" else "Failure") res expectedRes
 
-    let runExamplesAndMain (examples: string []) expectedResults realInput (func: string -> string) title =
+    let run (examples: string []) expectedResults realInput (func: string -> string) title =
         printfn title
 
         if examples.Length = 0 then
@@ -41,8 +41,6 @@ module TestRunner =
             resultList
             |> Array.fold (fun b1 (_, _, b2) -> b1 && b2) true
 
-
-
         if examplesSuccessful then
             printfn "All examples were successful, running the real input..."
             let timer = new Stopwatch()
@@ -52,7 +50,6 @@ module TestRunner =
             printfn "Time elapsed: %A" timer.Elapsed
         else
             printfn "Some examples were not successful. PLEASE DO BETTER"
-
 
         printfn ""
 
@@ -182,3 +179,16 @@ module TestRunner =
     let examples10_2 = examples10_1
 
     let exampleResults10_2 = [| "288957" |]
+
+
+    // Day 11
+    let input11 = getInput 11
+
+    let examples11_1 =
+        [| "5483143223\n2745854711\n5264556173\n6141336146\n6357385478\n4167524645\n2176841721\n6882881134\n4846848554\n5283751526" |]
+
+    let exampleResults11_1 = [| "1656" |]
+
+    let examples11_2 = examples11_1
+
+    let exampleResults11_2 = [| "195" |]
