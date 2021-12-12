@@ -15,3 +15,11 @@ module Utils =
 
     let commas (input: string) : string [] =
         input.Split([| ", "; "," |], StringSplitOptions.RemoveEmptyEntries)
+
+    let isAllUppercase (input: string) : bool =
+        input |> Seq.forall (fun c -> Char.IsUpper c)
+
+    let twoArrayToTuple<'T> (arrayWithTwoElements: 'T []) : ('T * 'T) =
+        match arrayWithTwoElements with
+        | [| a; b |] -> (a, b)
+        | _ -> failwithf "Array does not contain exactly two elements! %A" arrayWithTwoElements

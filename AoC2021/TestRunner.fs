@@ -192,3 +192,18 @@ module TestRunner =
     let examples11_2 = examples11_1
 
     let exampleResults11_2 = [| "195" |]
+
+
+    // Day 12
+    let input12 = getInput 12
+
+    let examples12_1 =
+        [| "start-A\nstart-b\nA-c\nA-b\nb-d\nA-end\nb-end"
+           "dc-end\nHN-start\nstart-kj\ndc-start\ndc-HN\nLN-dc\nHN-end\nkj-sa\nkj-HN\nkj-dc"
+           "fs-end\nhe-DX\nfs-he\nstart-DX\npj-DX\nend-zg\nzg-sl\nzg-pj\npj-he\nRW-he\nfs-DX\npj-RW\nzg-RW\nstart-pj\nhe-WI\nzg-he\npj-fs\nstart-RW" |]
+
+    let exampleResults12_1 = [| "10"; "19"; "226" |]
+
+    let examples12_2 = examples12_1
+
+    let exampleResults12_2 = [| "36"; "103"; "3509" |]
