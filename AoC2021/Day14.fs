@@ -66,17 +66,18 @@ module Day14 =
             pairs
             |> Array.fold
                 (fun (myMemo, acc) pair ->
-                    let (baz, quux) = pair
-                    let foo = polymerize pair rules runs myMemo
+                    let memoMap = polymerize pair rules runs myMemo
 
-                    let bar2 =
-                        addMaps acc (Map.find (pair, runs) foo)
-                        |> addToMap quux (-1L)
+                    let occurrences =
+                        addMaps acc (Map.find (pair, runs) memoMap)
 
-                    (foo, bar2))
+                    (memoMap, occurrences))
                 (Map.empty, Map.empty)
 
-        addToMap (start |> Array.ofSeq |> Array.last) 1L result
+        start
+        |> Array.ofSeq
+        |> (fun a -> a.[1..(a.Length - 2)])
+        |> Array.fold (fun s t -> addToMap t (-1L) s) result
         |> Map.values
         |> Array.ofSeq
         |> Array.sort
