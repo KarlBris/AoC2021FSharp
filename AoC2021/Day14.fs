@@ -5,7 +5,8 @@ open Utils
 module Day14 =
 
     type Rules = Map<(char * char), char>
-    let runs = 4
+    type Memo = Map<(char * char) * int, Map<char, int64>>
+    type OccurrenceMap = Map<char, int64>
 
     let makeRule (ruleString: string) : ((char * char) * char) =
         let (fromRule, toRule) =
@@ -13,174 +14,94 @@ module Day14 =
 
         (fromRule |> Array.ofSeq |> twoArrayToTuple, toRule |> char)
 
-    let rec polymerize (start: char []) (rules: Rules) (iters: int) : char [] =
-        match iters with
-        | 0 -> start
-        | _ ->
-            let hej =
-                start
-                |> Array.pairwise
-                |> Array.map (fun p -> Map.find p rules)
-                |> Array.append [| 'Ö' |]
+    let addToMap key value map =
+        Map.change
+            key
+            (fun op ->
+                match op with
+                | Some v -> Some(v + value)
+                | None -> Some(value))
+            map
 
-            let newArray =
-                Array.foldBack2 (fun a b xs -> a :: b :: xs) hej start []
-                |> List.tail
-                |> Array.ofList
-
-            polymerize newArray rules (iters - 1)
-
-    let part1 (input: string) : string =
-        let (start, rulesString) = input.Split("\n\n") |> twoArrayToTuple
-
-        let rules =
-            rulesString
-            |> lines
-            |> Array.map makeRule
-            |> Map.ofArray
-
-        let startArray = start |> Array.ofSeq
-
-        let result = polymerize startArray rules runs
-
-        let bar =
-            result
-            |> Array.fold
-                (fun map molecule ->
-                    Map.change
-                        molecule
-                        (fun op ->
-                            match op with
-                            | Some v -> Some(v + 1)
-                            | None -> Some(1))
-                        map)
-                Map.empty
-            |> Map.values
-            |> Array.ofSeq
-            |> Array.sort
-
-        (Array.last bar) - (Array.head bar) |> string
-
-    let rec polymerize2 (start: char * char) (rules: Rules) (iters: int) (acc: Map<char, int64>) : Map<char, int64> =
-        let (left, right) = start
-
-        match iters with
-        | 1 ->
-            let a = Map.find start rules
-
-            let b =
-                [| left; a |]
-                |> Array.fold
-                    (fun map mol ->
-                        Map.change
-                            mol
-                            (fun op ->
-                                match op with
-                                | Some v -> Some(v + 1L)
-                                | None -> Some(1L))
-                            map)
-                    acc
-
-            b
-        | _ ->
-
-            let a = Map.find start rules
-
-            let leftMap =
-                polymerize2 (left, a) rules (iters - 1) acc
-
-            let rightMap =
-                polymerize2 (a, right) rules (iters - 1) leftMap
-
-            rightMap
-
-    let addMaps (mapA: Map<char, int64>) (mapB: Map<char, int64>) : Map<char, int64> =
+    let addMaps (mapA: OccurrenceMap) (mapB: OccurrenceMap) : OccurrenceMap =
         mapA
-        |> Map.fold
-            (fun state key v ->
-                Map.change
-                    key
-                    (fun op ->
-                        match op with
-                        | Some value -> Some(value + v)
-                        | None -> Some v)
-                    state)
-            mapB
+        |> Map.fold (fun state key v -> addToMap key v state) mapB
 
-    let rec polymerize3
-        (start: char * char)
-        (rules: Rules)
-        (iters: int)
-        (acc: Map<char, int64>)
-        (memo: Map<(char * char) * int, Map<char, int64>>)
-        : (Map<char, int64> * (Map<(char * char) * int, Map<char, int64>>)) =
+    let combineMemos (memo1: OccurrenceMap) (memo2: OccurrenceMap) (removeOneOfThese: char) : OccurrenceMap =
+        addMaps memo1 memo2
+        |> addToMap removeOneOfThese (-1L)
+
+    let rec polymerize (start: char * char) (rules: Rules) (iters: int) (memo: Memo) : Memo =
         let (left, right) = start
+        let a = Map.find start rules
 
-        match iters with
-        | 1 ->
-            let a = Map.find start rules
+        match Map.tryFind (start, iters) memo with
+        | Some v -> memo
+        | None ->
+            match iters with
+            | 1 ->
+                let b =
+                    [| left; a; right |]
+                    |> Array.fold (fun map mol -> addToMap mol 1L map) Map.empty
 
-            let b =
-                [| left; a; right |]
-                |> Array.fold
-                    (fun map mol ->
-                        Map.change
-                            mol
-                            (fun op ->
-                                match op with
-                                | Some v -> Some(v + 1L)
-                                | None -> Some(1L))
-                            map)
-                    acc
+                (Map.add ((left, right), iters) b memo)
+            | _ ->
+                let leftPair = (left, a)
+                let rightPair = (a, right)
 
-            (b, memo)
-        | _ ->
+                let memo2 =
+                    polymerize leftPair rules (iters - 1) memo
+                    |> polymerize rightPair rules (iters - 1)
 
-            let a = Map.find start rules
+                let combinedMemo =
+                    combineMemos (Map.find (leftPair, iters - 1) memo2) (Map.find (rightPair, iters - 1) memo2) a
 
-            match Map.tryFind (start, iters) memo with
-            | Some v -> (addMaps v acc, memo)
-            | None ->
-                let (leftMap, memo2) =
-                    polymerize3 (left, a) rules (iters - 1) acc memo
+                Map.add ((left, right), iters) combinedMemo memo2
 
-                let memo3 = Map.add ((left, a), iters) leftMap memo2
-
-                let (rightMap, memo4) =
-                    polymerize3 (a, right) rules (iters - 1) acc memo3
-
-                let memo5 =
-                    Map.add ((a, right), iters) rightMap memo4
-
-
-                (rightMap, memo5)
-
-    let part2 (input: string) : string =
-        let (start, rulesString) = input.Split("\n\n") |> twoArrayToTuple
-
-        let rules =
-            rulesString
-            |> lines
-            |> Array.map makeRule
-            |> Map.ofArray
+    let polymerization start rules runs =
 
         let pairs = start |> Array.ofSeq |> Array.pairwise
 
-        let resultP =
+        let (_, result) =
             pairs
-            |> Array.fold (fun (myMap, myMemo) pair -> polymerize3 pair rules runs myMap myMemo) (Map.empty, Map.empty)
+            |> Array.fold
+                (fun (myMemo, acc) pair ->
+                    let (baz, quux) = pair
+                    let foo = polymerize pair rules runs myMemo
 
-        let result =
-            resultP
-            |> fst
-            |> Map.change
-                (Seq.last start)
-                (fun opt ->
-                    match opt with
-                    | Some v -> Some(v + 1L)
-                    | None -> Some 1L)
+                    let bar2 =
+                        addMaps acc (Map.find (pair, runs) foo)
+                        |> addToMap quux (-1L)
 
-        let bar =
-            result |> Map.values |> Array.ofSeq |> Array.sort
+                    (foo, bar2))
+                (Map.empty, Map.empty)
 
-        (Array.last bar) - (Array.head bar) |> string
+        addToMap (start |> Array.ofSeq |> Array.last) 1L result
+        |> Map.values
+        |> Array.ofSeq
+        |> Array.sort
+
+    let processInput (input: string) : (string * Rules) =
+        let (start, rulesString) = input.Split("\n\n") |> twoArrayToTuple
+
+        let rules =
+            rulesString
+            |> lines
+            |> Array.map makeRule
+            |> Map.ofArray
+
+        (start, rules)
+
+    let part1 (input: string) : string =
+        let (start, rules) = processInput input
+
+        let b = polymerization start rules 10
+
+        (Array.last b) - (Array.head b) |> string
+
+    let part2 (input: string) : string =
+        let (start, rules) = processInput input
+
+        let b = polymerization start rules 40
+
+        (Array.last b) - (Array.head b) |> string
