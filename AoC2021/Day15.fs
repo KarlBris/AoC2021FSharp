@@ -2,10 +2,24 @@
 
 open Utils
 open System
+open System.Diagnostics
 
 module Day15 =
 
     type Pos = int * int
+
+    type PriorityQueue = (Pos * int) list
+
+    let addToPQ (item: Pos * int) (queue: PriorityQueue) : PriorityQueue =
+        let index =
+            queue
+            |> List.takeWhile (fun (_, v) -> v < (snd item))
+            |> List.length
+
+        List.insertAt index item queue
+
+    let removeFromPQ (item: Pos) (queue: PriorityQueue) : PriorityQueue =
+        queue |> List.filter (fun (p, _) -> p <> item)
 
     let makeGrid input =
         let ls =
@@ -78,7 +92,7 @@ module Day15 =
                 increaseAndWrap grid.[x % xSize, y % ySize] increases)
         |> Array.sum
 
-    let rec checkNeighbors neighbors current gScore multiplier grid cameFrom fScore openSet h goal =
+    let rec checkNeighbors neighbors current gScore multiplier grid cameFrom fScore (openSet: PriorityQueue) h goal =
         match neighbors with
         | [||] -> (cameFrom, gScore, fScore, openSet)
         | _ ->
@@ -95,25 +109,22 @@ module Day15 =
                 let fScore2 =
                     Map.add n (tentativeGScore + (h n goal)) fScore
 
-                let openSet2 = Set.add n openSet
+                let openSet2 = addToPQ (n, findOrMax n fScore2) openSet
                 checkNeighbors (Array.tail neighbors) current gScore2 multiplier grid cameFrom2 fScore2 openSet2 h goal
             else
                 checkNeighbors (Array.tail neighbors) current gScore multiplier grid cameFrom fScore openSet h goal
 
-    let rec aStarRunner (openSet: Set<Pos>) fScore gScore cameFrom goal multiplier h grid =
-        match Set.isEmpty openSet with
-        | true -> failwith "error"
-        | false ->
-            let currentPos =
-                Set.toArray openSet
-                |> Array.sortBy (fun p -> findOrMax p fScore)
-                |> Array.head
+    let rec aStarRunner (openSet: PriorityQueue) fScore gScore cameFrom goal multiplier h grid =
+        match openSet with
+        | [] -> failwith "error"
+        | _ ->
+            let currentPos = fst openSet.Head
 
             if currentPos = goal then
                 pathToPos cameFrom [ currentPos ]
                 |> pathScore grid
             else
-                let openSet2 = Set.remove currentPos openSet
+                let openSet2 = removeFromPQ currentPos openSet
                 let ns = (neighbors currentPos multiplier grid)
 
                 let (cameFrom2, gScore2, fScore2, openSet3) =
@@ -122,7 +133,7 @@ module Day15 =
                 aStarRunner openSet3 fScore2 gScore2 cameFrom2 goal multiplier h grid
 
     let aStar (start: Pos) (goal: Pos) (grid: int [,]) (h: Pos -> Pos -> int) (multiplier: int) =
-        let openSet = set [| start |]
+        let openSet = [ (start, h start goal) ]
         let cameFrom: Map<Pos, Pos> = Map.empty
 
         let gScore = Map.ofArray [| (start, 0) |]
@@ -132,6 +143,7 @@ module Day15 =
 
     let part1 (input: string) : string =
         let (xSize, ySize, grid) = input |> makeGrid
+
 
         aStar (0, 0) (xSize - 1, ySize - 1) grid manhattanDist 1
         |> string
