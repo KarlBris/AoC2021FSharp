@@ -9,12 +9,12 @@ module Day2 =
         | F of int
 
     let parseInput (input: string) : Instruction =
-        let [| operand; amount |] = input.Split " "
+        let (operand, amount) = input.Split " " |> twoArrayToTuple
 
         match operand with
         | "forward" -> F(int amount)
         | "down" -> D(int amount)
-        | "up" -> U(int amount)
+        | _ -> U(int amount)
 
     let followInstruction (state: int * int) (instruction: Instruction) : (int * int) =
         let (x, y) = state

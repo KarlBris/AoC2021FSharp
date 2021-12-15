@@ -52,7 +52,7 @@ module Day12 =
 
     let part1 (input: string) : string =
         delve (input |> makeGraph) [ "start" ] ""
-        |> Array.filter (fun (h :: _) -> h = "end")
+        |> Array.filter (fun l -> List.head l = "end")
         |> Array.length
         |> string
 
@@ -71,7 +71,7 @@ module Day12 =
     let part2 (input: string) : string =
         smallCaves input
         |> Array.map (delve (input |> makeGraph) [ "start" ])
-        |> Array.map (Array.filter (fun (h :: _) -> h = "end"))
+        |> Array.map (Array.filter (fun l -> List.head l = "end"))
         |> Array.concat
         |> Array.distinct
         |> Array.length

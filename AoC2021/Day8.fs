@@ -5,7 +5,7 @@ open Utils
 module Day8 =
 
     let makeInputLine (input: string) : (string [] * string []) =
-        let [| defs; digs |] = input.Split(" | ")
+        let (defs, digs) = input.Split(" | ") |> twoArrayToTuple
         (defs |> words, digs |> words)
 
     let countEasyDigits (input: (string [] * string [])) : int =
