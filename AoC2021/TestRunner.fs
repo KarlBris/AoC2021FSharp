@@ -246,3 +246,20 @@ module TestRunner =
     let examples15_2 = examples15_1
 
     let exampleResults15_2 = [| "315" |]
+
+
+    // Day 16
+    let input16 = getInput 16
+
+    let examples16_1 =
+        [| "A0016C880162017C3686B18A3D4780"
+           "8A004A801A8002F478"
+           "620080001611562C8802118E34"
+           "C0015000016115A2E0802F182340"
+           "A0016C880162017C3686B18A3D4780" |]
+
+    let exampleResults16_1 = [| "31"; "16"; "12"; "23"; "31" |]
+
+    let examples16_2 = examples15_1
+
+    let exampleResults16_2 = [| "" |]
