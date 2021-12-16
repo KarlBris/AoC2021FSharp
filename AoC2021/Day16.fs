@@ -1,9 +1,6 @@
 ﻿namespace AoC2021
 
-open Utils
-
 module Day16 =
-
     type Packet =
         | LiteralValue of version: int64 * typeID: int64 * value: int64 * length: int64
         | Operator of version: int64 * typeID: int64 * lengthTypeID: int64 * subPackets: Packet [] * length: int64
@@ -39,8 +36,8 @@ module Day16 =
             let chunk = Array.head chunks
 
             match chunk.[0] with
-            | '1' -> parseBitChunks (Array.append acc chunk.[1..]) (length + 5) (Array.tail chunks)
-            | '0' -> (Array.append acc chunk.[1..], length + 5)
+            | '1' -> parseBitChunks (Array.append acc chunk.[1..]) (length + 5L) (Array.tail chunks)
+            | '0' -> (Array.append acc chunk.[1..], length + 5L)
 
     let packetLength (packet: Packet) : int64 =
         match packet with
@@ -48,7 +45,7 @@ module Day16 =
         | Operator (_, _, _, _, length) -> length
 
     let rec identifyPacket (binArray: char []) =
-        let rec sequentialPackets (binArray: char []) (acc: Packet []) : Packet [] =
+        let rec sequentialPackets (acc: Packet []) (binArray: char []) : Packet [] =
             match binArray.Length > 6 with
             | false -> acc
             | true ->
@@ -56,33 +53,21 @@ module Day16 =
 
                 match packet with
                 | LiteralValue (_, _, _, length) ->
-                    sequentialPackets (binArray.[int length..]) (Array.append acc [| packet |])
+                    sequentialPackets (Array.append acc [| packet |]) (binArray.[int length..])
                 | Operator (_, _, _, _, length) ->
-                    sequentialPackets (binArray.[int length..]) (Array.append acc [| packet |])
+                    sequentialPackets (Array.append acc [| packet |]) (binArray.[int length..])
 
-        let rec sequentialPacketsCount (count: int64) (binArray: char []) (acc: Packet []) : Packet [] =
+        let rec sequentialPacketsCount (count: int64) (acc: Packet []) (binArray: char []) : Packet [] =
             match count with
             | 0L -> acc
             | _ ->
-                if count = 959 then
-                    "sssssssssssssssssssssssssssssssssssssssss"
-                else
-                    "a"
-
                 let packet = identifyPacket binArray
 
                 match packet with
                 | LiteralValue (_, _, _, length) ->
-                    sequentialPacketsCount (count - 1L) (binArray.[int length..]) (Array.append acc [| packet |])
+                    sequentialPacketsCount (count - 1L) (Array.append acc [| packet |]) (binArray.[int length..])
                 | Operator (_, _, _, _, length) ->
-                    sequentialPacketsCount (count - 1L) (binArray.[int length..]) (Array.append acc [| packet |])
-
-        let packetVersionTemp = binArray.[0..2]
-
-        if packetVersionTemp.Length < 3 then
-            0
-        else
-            1
+                    sequentialPacketsCount (count - 1L) (Array.append acc [| packet |]) (binArray.[int length..])
 
         let packetVersion = binArray.[0..2] |> binArrayToDec
 
@@ -93,7 +78,7 @@ module Day16 =
             let (value, length) =
                 binArray.[6..]
                 |> Array.chunkBySize 5
-                |> parseBitChunks [||] 6
+                |> parseBitChunks [||] 6L
 
             let value' = value |> binArrayToDec
 
@@ -104,32 +89,27 @@ module Day16 =
             match packetLengthTypeID with
             | 0L ->
                 //the next 15 bits are a number that represents the total length in bits of the sub-packets contained by this packet.
-
                 let subPacketsLength = binArray.[7..21] |> binArrayToDec
 
-                let subPacketsBin =
+                let subPackets =
                     binArray.[22..(22 + int subPacketsLength - 1)]
+                    |> sequentialPackets [||]
 
-                let subPackets = sequentialPackets subPacketsBin [||]
-
-                printfn "0: subpackets are of stated length %d" subPacketsLength
                 Operator(packetVersion, packetTypeID, packetLengthTypeID, subPackets, 7L + 15L + subPacketsLength)
             | 1L ->
                 //the next 11 bits are a number that represents the number of sub-packets immediately contained by this packet.
                 let subPacketsCount = binArray.[7..17] |> binArrayToDec
-                printfn "%d subpackets" subPacketsCount
-                let subPacketsBin = binArray.[18..]
 
                 let subPackets =
-                    sequentialPacketsCount subPacketsCount subPacketsBin [||]
+                    binArray.[18..]
+                    |> sequentialPacketsCount subPacketsCount [||]
 
                 let subPacketsLength =
                     subPackets
                     |> Array.map (fun p -> packetLength p)
                     |> Array.sum
 
-                printfn "1: subpackets are of total length %d" subPacketsLength
-                Operator(packetVersion, packetTypeID, packetLengthTypeID, subPackets, 7L + 15L + subPacketsLength)
+                Operator(packetVersion, packetTypeID, packetLengthTypeID, subPackets, 7L + 11L + subPacketsLength)
 
     let rec sumVersionNumbers (packet: Packet) : int64 =
         match packet with
@@ -149,4 +129,47 @@ module Day16 =
 
         binArray
 
-    let part2 (input: string) : string = input
+    let rec performCalculations (packet: Packet) : int64 =
+        match packet with
+        | LiteralValue (_, _, value, _) -> value
+        | Operator (_, typeID, _, packets, _) ->
+            let calculatedPackets = Array.map performCalculations packets
+
+            match typeID with
+            | 0L -> // sum
+                calculatedPackets |> Array.sum
+            | 1L -> // product
+                calculatedPackets
+                |> Array.fold (fun s n -> s * n) 1L
+            | 2L -> // min
+                calculatedPackets |> Array.min
+            | 3L -> // max
+                calculatedPackets |> Array.max
+            | 5L -> // gt
+                if calculatedPackets.[0] > calculatedPackets.[1] then
+                    1L
+                else
+                    0L
+            | 6L -> // lt
+                if calculatedPackets.[0] < calculatedPackets.[1] then
+                    1L
+                else
+                    0L
+            | 7L -> // eq
+                if calculatedPackets.[0] = calculatedPackets.[1] then
+                    1L
+                else
+                    0L
+
+    let part2 (input: string) : string =
+        let binArray =
+            input.Trim()
+            |> Array.ofSeq
+            |> Array.map hexToBin
+            |> Seq.concat
+            |> Array.ofSeq
+            |> identifyPacket
+            |> performCalculations
+            |> string
+
+        binArray
