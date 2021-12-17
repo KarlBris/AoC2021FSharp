@@ -279,3 +279,15 @@ module TestRunner =
            "0"
            "0"
            "1" |]
+
+
+    // Day 17
+    let input17 = getInput 17
+
+    let examples17_1 = [| "target area: x=20..30, y=-10..-5" |]
+
+    let exampleResults17_1 = [| "45" |]
+
+    let examples17_2 = examples17_1
+
+    let exampleResults17_2 = [| "112" |]
