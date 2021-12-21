@@ -3,8 +3,6 @@
 open Utils
 
 module Day21 =
-
-    //(turn * ((p1pos * p1sc) * (p2pos * p2sc)))
     type UniverseKey = (int * ((int * int) * (int * int)))
 
     type DiracMap = Map<UniverseKey, int64>
@@ -18,8 +16,8 @@ module Day21 =
         match n with
         | 1 -> rollDie last
         | _ ->
-            let foo = rollDie last
-            foo + (nextNThrows foo (n - 1))
+            let roll = rollDie last
+            roll + (nextNThrows roll (n - 1))
 
     let takeSteps (pos: int) (steps: int) : int = ((pos + steps - 1) % 10) + 1
 
@@ -73,8 +71,15 @@ module Day21 =
 
         (min p1Score p2Score) * thrown |> string
 
-    let newPositions (pos: int) : int [] =
-        [| 1; 2; 3 |] |> Array.map (takeSteps pos)
+    let newPositions (pos: int) =
+        Array.allPairs [| 1; 2; 3 |] [|
+            1
+            2
+            3
+        |]
+        |> Array.allPairs [| 1; 2; 3 |]
+        |> Array.map (fun (a, (b, c)) -> a + b + c)
+        |> Array.map (fun steps -> takeSteps pos steps)
 
     let playQuantum (input: UniverseKey * int64) : (UniverseKey * int64) [] =
         let ((turn, ((p1pos, p1sc), (p2pos, p2sc))), num) = input
@@ -98,28 +103,25 @@ module Day21 =
         |> Array.fold (fun state (k, v) -> Map.change k (fun op -> optionAdd op v) state) Map.empty
 
     let rec playCoolGame (input: DiracMap) : int64 =
-        let ar =
+        let newMap =
             Map.toArray input
             |> Array.map playQuantum
             |> Array.concat
-
-        let newMap = addArrayToMap ar
+            |> addArrayToMap
 
         if Map.count newMap = Map.count input then
             let (p1WinOutcomes, p2WinOutcomes) =
                 newMap
                 |> Map.toArray
-                |> Array.partition (fun ((turn, ((p1pos, p1sc), (p2pos, p2sc))), num) -> turn = 2)
+                |> Array.partition (fun ((turn, _), _) -> turn = 2)
 
-            let p1Wins =
+            let p1Score =
                 p1WinOutcomes |> Array.map snd |> Array.sum
-            //|> Array.fold (fun s t -> s * t) 1L
 
-            let p2Wins =
+            let p2Score =
                 p2WinOutcomes |> Array.map snd |> Array.sum
-            //|> Array.fold (fun s t -> s * t) 1L
 
-            0L
+            max p1Score p2Score
         else
             playCoolGame newMap
 
@@ -128,8 +130,5 @@ module Day21 =
         let p1Start = p1String.[28..] |> int
         let p2Start = p2String.[28..] |> int
 
-        let foo =
-            playCoolGame (Map.ofArray [| ((1, ((p1Start, 0), (p2Start, 0))), 1) |])
-            |> string
-
-        input
+        playCoolGame (Map.ofArray [| ((1, ((p1Start, 0), (p2Start, 0))), 1L) |])
+        |> string
