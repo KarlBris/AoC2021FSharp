@@ -342,3 +342,16 @@ module TestRunner =
     let examples20_2 = examples20_1
 
     let exampleResults20_2 = [| "3351" |]
+
+
+    // Day 20
+    let input21 = getInput 21
+
+    let examples21_1 =
+        [| "Player 1 starting position: 4\nPlayer 2 starting position: 8" |]
+
+    let exampleResults21_1 = [| "739785" |]
+
+    let examples21_2 = examples21_1
+
+    let exampleResults21_2 = [| "444356092776315" |]
