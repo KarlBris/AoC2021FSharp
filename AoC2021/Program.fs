@@ -45,7 +45,9 @@ let main argv =
     //run TestRunner.examples19_2 TestRunner.exampleResults19_2 TestRunner.input19 Day19.part2 "Day 19 part 2"
     //run TestRunner.examples20_1 TestRunner.exampleResults20_1 TestRunner.input20 Day20.part1 "Day 20 part 1"
     //run TestRunner.examples20_2 TestRunner.exampleResults20_2 TestRunner.input20 Day20.part2 "Day 20 part 2"
-    run TestRunner.examples21_1 TestRunner.exampleResults21_1 TestRunner.input21 Day21.part1 "Day 21 part 1"
-    run TestRunner.examples21_2 TestRunner.exampleResults21_2 TestRunner.input21 Day21.part2 "Day 21 part 2"
+    //run TestRunner.examples21_1 TestRunner.exampleResults21_1 TestRunner.input21 Day21.part1 "Day 21 part 1"
+    //run TestRunner.examples21_2 TestRunner.exampleResults21_2 TestRunner.input21 Day21.part2 "Day 21 part 2"
+    run TestRunner.examples22_1 TestRunner.exampleResults22_1 TestRunner.input22 Day22.part1 "Day 22 part 1"
+    run TestRunner.examples22_2 TestRunner.exampleResults22_2 TestRunner.input22 Day22.part2 "Day 22 part 2"
 
     0
