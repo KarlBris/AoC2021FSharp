@@ -196,7 +196,7 @@ module Day23 =
         | [] -> [ Room(roomId, c, Back) ]
         | _ -> (Room(roomId, c, Front)) :: room
 
-    let possibleMoves (currentState: GameState) (position: Position) : (GameState * int) list =
+    let possibleMoves (currentState: GameState) (position: Position) : ((GameState * int) * bool) list =
         let (rA, rB, rC, rD, cor) = currentState
         let cor2 = Array.copy cor
 
@@ -208,7 +208,7 @@ module Day23 =
                 availableSpaceInCorridor true corridorOut cor2
 
             availableCorridorPositions
-            |> List.map (fun p -> moveToCorridorPos position corridorOut p currentState)
+            |> List.map (fun p -> (moveToCorridorPos position corridorOut p currentState), false)
         | Corridor (c, cPos) ->
             let targetRoom =
                 if c = 'A' then rA
@@ -247,7 +247,7 @@ module Day23 =
                         | C -> (rA, rB, addToRoom C c rC, rD, cor2)
                         | D -> (rA, rB, rC, addToRoom D c rD, cor2)
 
-                    [ (newGameState, steps * stepCost c) ]
+                    [ (newGameState, steps * stepCost c), true ]
                 | None -> []
             else
                 []
@@ -291,14 +291,24 @@ module Day23 =
         //printState state
 
         if isEndState state then
+            //printfn "%d" acc
             Some acc
         else
-            let newStates =
+            let newStatesTemp =
                 state
                 |> possibleMovers
                 |> List.map (possibleMoves state)
                 |> List.concat
-                |> List.sortBy (fun (s, v) -> v)
+
+            let (prio, normal) = newStatesTemp |> List.partition snd
+
+            let newStates =
+                if prio.Length > 0 then
+                    prio |> List.map (fun (a, b) -> a) |> List.sort
+                else
+                    normal |> List.map (fun (a, b) -> a) |> List.sort
+
+
 
             if newStates.Length = 0 then
                 //printfn "Dead end reached. reverting to previous state"
