@@ -379,7 +379,7 @@ module TestRunner =
     let examples23_1 =
         [| "#############\n#...........#\n###B#C#B#D###\n  #A#D#C#A#\n  #########" |]
 
-    let exampleResults23_1 = [| "" |]
+    let exampleResults23_1 = [| "12521" |]
 
     let examples23_2 = examples23_1
 
