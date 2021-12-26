@@ -23,3 +23,5 @@ module Utils =
         match arrayWithTwoElements with
         | [| a; b |] -> (a, b)
         | _ -> failwithf "Array does not contain exactly two elements! %A" arrayWithTwoElements
+
+    let eMod (a: int) (b: int) : int = ((a % b) + b) % b

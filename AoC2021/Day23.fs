@@ -4,131 +4,110 @@ open Utils
 
 module Day23 =
 
-    type RoomPos =
-        | Front
-        | Back
-
     type RoomId =
         | A
         | B
         | C
         | D
 
+    type Room = RoomId * (char list) // done
+
+    type Corridor = char []
+
     type Position =
-        | Room of (RoomId * char * RoomPos)
-        | Corridor of (char * int)
+        | Rm of RoomId
+        | Cr of int
 
-    let roomList (room: Position List) : char List =
-        let roomChars =
-            room
-            |> List.map
-                (fun p ->
-                    match p with
-                    | Room (a, b, c) -> b
-                    | Corridor _ -> failwith "corridor in room")
+    let roomList (roomSize: int) ((_, room): Room) : char List = // done
+        let header =
+            List.replicate (roomSize - room.Length) '.'
 
-        match room.Length with
-        | 0 -> [ '.'; '.' ]
-        | 1 -> '.' :: roomChars
-        | 2 -> roomChars
+        header @ room
 
+    type GameState = (Room * Room * Room * Room * Corridor) // done
 
-    type GameState = (Position list * Position list * Position list * Position list * char [])
-
-    let printState (state: GameState) =
+    let printState (roomSize: int) (state: GameState) = // done
 
         let (rA, rB, rC, rD, c) = state
 
-        let aList = roomList rA
-        let bList = roomList rB
-        let cList = roomList rC
-        let dList = roomList rD
+        let aList = roomList roomSize rA
+        let bList = roomList roomSize rB
+        let cList = roomList roomSize rC
+        let dList = roomList roomSize rD
 
         printfn "#############"
         printfn "#%s#" (System.String.Concat c)
         printfn "###%c#%c#%c#%c###" aList.[0] bList.[0] cList.[0] dList.[0]
-        printfn "  #%c#%c#%c#%c#" aList.[1] bList.[1] cList.[1] dList.[1]
+
+        [ 1 .. (roomSize - 1) ]
+        |> List.iter (fun i -> printfn "  #%c#%c#%c#%c#" aList.[i] bList.[i] cList.[i] dList.[i])
+
         printfn "  #########\n"
 
-    let disallowedCorridorPositions = [ 2; 4; 6; 8 ]
+    let disallowedCorridorPositions = [ 2; 4; 6; 8 ] // done
 
-    let getRoomId (c: char) : RoomId =
+    let getRoomId (c: char) : RoomId = // done
         match c with
         | 'A' -> A
         | 'B' -> B
         | 'C' -> C
         | _ -> D
 
-    let corridorPosOfRoom room =
+    let makeChar (roomId: RoomId) : char = // done
+        match roomId with
+        | A -> 'A'
+        | B -> 'B'
+        | C -> 'C'
+        | D -> 'D'
+
+    let corridorPosOfRoom room = // done
         match room with
         | A -> 2
         | B -> 4
         | C -> 6
         | D -> 8
 
-    let stepCost (c: char) : int =
+    let stepCost (c: char) : int = // done
         match c with
         | 'A' -> 1
         | 'B' -> 10
         | 'C' -> 100
         | _ -> 1000
 
-    let posFromRoom (room: Position list) (rID: RoomId) : Position list =
-        match room with
-        | [] -> []
-        | (r :: rs) ->
-            match r with
-            | Room (roomId, c, p) ->
-                match p with
-                | Back ->
-                    if getRoomId c = roomId then
-                        []
-                    else
-                        [ r ]
-                | Front ->
-                    if getRoomId c = roomId then
-                        match List.head rs with
-                        | Room (id2, c2, p2) ->
-                            match p2 with
-                            | Back ->
-                                if getRoomId c2 = roomId then
-                                    []
-                                else
-                                    [ r ]
-                            | Front -> failwith "front room behind front!"
-                        | Corridor _ -> failwith "corridor pos in room"
-                    else
-                        [ r ]
-            | Corridor _ -> failwith "corridor pos in room"
+    let posFromRoom (room: Room) : Position list = // gets a position from this room that is eligible for move // done
+        let (rId, roomList) = room
 
-    let removeFromRoom (room: Position list) : Position list =
-        match room with
+        match roomList with
         | [] -> []
-        | (r :: rs) -> rs
+        | c :: cs ->
+            if (List.forall ((=) (makeChar rId)) cs)
+               && (c = (makeChar rId)) then
+                []
+            else
+                [ Rm rId ]
 
-    let possFromCorridor (corridor: char []) : Position list =
+    let removeFromRoom (room: Room) : Room = // done
+        let (rId, roomList) = room
+
+        match roomList with
+        | [] -> (rId, [])
+        | (r :: rs) -> (rId, rs)
+
+    let possFromCorridor (corridor: Corridor) : Position list = // done
         corridor
         |> Array.indexed
         |> Array.filter (fun (_, c) -> c <> '.')
-        |> Array.map (fun (i, c) -> Corridor(c, i))
+        |> Array.map (fun (i, c) -> Cr i)
         |> List.ofArray
 
-    let canRoomBeEntered (room: Position list) : Option<RoomPos> =
-        match room.Length with
-        | 0 -> Some Back
-        | 1 ->
-            let inhabitant = List.head room
+    let canRoomBeEntered (roomSize: int) (c: char) (room: Room) : bool = // done
+        let (rId, roomList) = room
 
-            match inhabitant with
-            | Room (a, b, c) ->
-                if getRoomId b = a then
-                    Some Front
-                else
-                    None
-            | Corridor _ -> failwith "corridor pos in room"
-        | _ -> None
+        (rId = getRoomId c)
+        && (List.forall (fun x -> x = c) roomList)
+        && (roomList.Length < roomSize)
 
-    let availableSpaceInCorridor (disallowEntryways: bool) (entryPoint: int) (corridor: char []) : int list =
+    let availableSpaceInCorridor (disallowEntryways: bool) (entryPoint: int) (corridor: Corridor) : int list = // done
         let (leftOfEntry, rightOfEntry) =
             corridor
             |> List.ofArray
@@ -156,15 +135,30 @@ module Day23 =
         else
             foo
 
-    let possibleMovers (currentState: GameState) : Position list =
+    let possibleMovers (currentState: GameState) : Position list = // done
         let (rA, rB, rC, rD, c) = currentState
 
-        (posFromRoom rA A)
-        @ (posFromRoom rB B)
-          @ (posFromRoom rC C)
-            @ (posFromRoom rD D) @ (possFromCorridor c)
+        (posFromRoom rA)
+        @ (posFromRoom rB)
+          @ (posFromRoom rC)
+            @ (posFromRoom rD) @ (possFromCorridor c)
+
+    let fooFun (roomSize: int) (r: RoomId) (rA: Room) (rB: Room) (rC: Room) (rD: Room) : int =
+        match r with
+        | A -> roomSize - (rA |> snd |> List.length) + 1
+        | B -> roomSize - (rB |> snd |> List.length) + 1
+        | C -> roomSize - (rC |> snd |> List.length) + 1
+        | D -> roomSize - (rD |> snd |> List.length) + 1
+
+    let getFromRoom (r: RoomId) (rA: Room) (rB: Room) (rC: Room) (rD: Room) : char =
+        match r with
+        | A -> (rA |> snd |> List.head)
+        | B -> (rB |> snd |> List.head)
+        | C -> (rC |> snd |> List.head)
+        | D -> (rD |> snd |> List.head)
 
     let moveToCorridorPos
+        (roomSize: int)
         (pos: Position)
         (corOutPos: int)
         (targetCorPos: int)
@@ -173,9 +167,10 @@ module Day23 =
         let (rA, rB, rC, rD, cor) = currentState
 
         match pos with
-        | Room (r, c, rPos) ->
+        | Rm r ->
             let cor2 = Array.copy cor
-            let stepsToCorridor = if rPos = Front then 1 else 2
+            let stepsToCorridor = fooFun roomSize r rA rB rC rD
+            let c = getFromRoom r rA rB rC rD
             Array.set cor2 targetCorPos c // funky mutation. not a fan.
 
             let newGameState =
@@ -191,25 +186,26 @@ module Day23 =
             (newGameState, steps * stepCost c)
         | _ -> failwith "Tried to move to a corridor pos from another corridor pos..."
 
-    let addToRoom (roomId: RoomId) (c: char) (room: Position list) : Position list =
-        match room with
-        | [] -> [ Room(roomId, c, Back) ]
-        | _ -> (Room(roomId, c, Front)) :: room
+    let addToRoom (c: char) (room: Room) : Room = // done
+        let (roomid, roomList) = room
+        (roomid, c :: roomList)
 
-    let possibleMoves (currentState: GameState) (position: Position) : ((GameState * int) * bool) list =
+    let possibleMoves (roomSize: int) (currentState: GameState) (position: Position) : ((GameState * int) * bool) list =
         let (rA, rB, rC, rD, cor) = currentState
         let cor2 = Array.copy cor
 
         match position with
-        | Room (r, c, rPos) ->
+        | Rm r ->
             let corridorOut = corridorPosOfRoom r
 
             let availableCorridorPositions =
                 availableSpaceInCorridor true corridorOut cor2
 
             availableCorridorPositions
-            |> List.map (fun p -> (moveToCorridorPos position corridorOut p currentState), false)
-        | Corridor (c, cPos) ->
+            |> List.map (fun p -> (moveToCorridorPos roomSize position corridorOut p currentState), false)
+        | Cr cPos ->
+            let c = cor2.[cPos]
+
             let targetRoom =
                 if c = 'A' then rA
                 else if c = 'B' then rB
@@ -220,19 +216,14 @@ module Day23 =
 
             let targetRoomCorrPos = corridorPosOfRoom (getRoomId c)
 
-            (*printfn
-                "%c: target room is at pos %d, available positions are %A"
-                c
-                targetRoomCorrPos
-                availableCorridorPosition*)
-
             if List.contains targetRoomCorrPos availableCorridorPositions then
 
                 let targetRoomId = getRoomId c
 
-                match canRoomBeEntered targetRoom with
-                | Some rPos ->
-                    let stepsFromCorridor = if rPos = Front then 1 else 2
+                match canRoomBeEntered roomSize c targetRoom with
+                | true ->
+                    let stepsFromCorridor =
+                        (fooFun roomSize targetRoomId rA rB rC rD) - 1
 
                     let steps =
                         stepsFromCorridor
@@ -242,76 +233,73 @@ module Day23 =
 
                     let newGameState =
                         match targetRoomId with
-                        | A -> (addToRoom A c rA, rB, rC, rD, cor2)
-                        | B -> (rA, addToRoom B c rB, rC, rD, cor2)
-                        | C -> (rA, rB, addToRoom C c rC, rD, cor2)
-                        | D -> (rA, rB, rC, addToRoom D c rD, cor2)
+                        | A -> (addToRoom c rA, rB, rC, rD, cor2)
+                        | B -> (rA, addToRoom c rB, rC, rD, cor2)
+                        | C -> (rA, rB, addToRoom c rC, rD, cor2)
+                        | D -> (rA, rB, rC, addToRoom c rD, cor2)
 
                     [ (newGameState, steps * stepCost c), true ]
-                | None -> []
+                | false -> []
             else
                 []
 
-    let parseInput (input: string) : GameState =
+    let parseInput (roomSize: int) (input: char [] []) : GameState = // done
+
         let room1 =
-            [ Room(A, input.[31], Front)
-              Room(A, input.[45], Back) ]
+            (A, Array.toList input.[3].[2..(1 + roomSize)])
 
         let room2 =
-            [ Room(B, input.[33], Front)
-              Room(B, input.[47], Back) ]
+            (B, Array.toList input.[5].[2..(1 + roomSize)])
 
         let room3 =
-            [ Room(C, input.[35], Front)
-              Room(C, input.[49], Back) ]
+            (C, Array.toList input.[7].[2..(1 + roomSize)])
 
         let room4 =
-            [ Room(D, input.[37], Front)
-              Room(D, input.[51], Back) ]
+            (D, Array.toList input.[9].[2..(1 + roomSize)])
 
         (room1, room2, room3, room4, Array.replicate 11 '.')
 
-    let isOnly (rID: RoomId) =
-        List.forall
-            (fun r ->
-                match r with
-                | Room (id, c, _) -> id = rID && getRoomId c = rID
-                | Corridor _ -> false)
+    let isRoomCorrect (roomSize: int) (room: Room) : bool = // done
+        let (roomId, spaces) = room
 
-    let isEndState (state: GameState) : bool =
+        spaces.Length = roomSize
+        && (List.forall ((=) (makeChar roomId)) spaces)
+
+    let isEndState (roomSize: int) (state: GameState) : bool = // done
         let (rA, rB, rC, rD, cor) = state
 
         Array.forall ((=) '.') cor
-        && isOnly A rA
-        && isOnly B rB
-        && isOnly C rC
-        && isOnly D rD
+        && isRoomCorrect roomSize rA
+        && isRoomCorrect roomSize rB
+        && isRoomCorrect roomSize rC
+        && isRoomCorrect roomSize rD
 
-    let rec move (scores: int list) (acc: int) (state: GameState) : Option<int> =
-        //printState state
+    let rec move (roomSize: int) (scores: int list) (acc: int) (state: GameState) : Option<int> =
 
-        if isEndState state then
-            //printfn "%d" acc
+        if isEndState roomSize state then
             Some acc
         else
             let newStatesTemp =
                 state
                 |> possibleMovers
-                |> List.map (possibleMoves state)
+                |> List.map (possibleMoves roomSize state)
                 |> List.concat
 
             let (prio, normal) = newStatesTemp |> List.partition snd
 
             let newStates =
                 if prio.Length > 0 then
-                    prio |> List.map (fun (a, b) -> a) |> List.sort
+                    prio
+                    |> List.map (fun (a, b) -> a)
+                    |> List.sortBy snd
                 else
-                    normal |> List.map (fun (a, b) -> a) |> List.sort
+                    normal
+                    |> List.map (fun (a, b) -> a)
+                    |> List.sortBy snd
 
 
 
             if newStates.Length = 0 then
-                //printfn "Dead end reached. reverting to previous state"
                 None
             else
                 let asd =
@@ -319,7 +307,7 @@ module Day23 =
                     |> List.fold
                         (fun s (newState, cost) ->
                             if acc < s then
-                                match move scores (acc + cost) newState with
+                                match move roomSize scores (acc + cost) newState with
                                 | None -> s
                                 | Some v -> min v s
                             else
@@ -329,11 +317,42 @@ module Day23 =
                 Some asd
 
     let part1 (input: string) : string =
-        let state = parseInput input
-        let (rA, rB, rC, rD, c) = state
+        let roomSize = 2
 
-        let foo = move [] 0 state
+        let transposed =
+            input
+            |> lines
+            |> Array.map
+                (fun l ->
+                    if l.Length = 13 then
+                        Array.ofSeq l
+                    else
+                        Array.ofSeq (l + "  "))
+            |> Array.transpose
+
+        let state = parseInput roomSize transposed
+
+        let foo = move roomSize [] 0 state
 
         foo |> Option.get |> string
 
-    let part2 (input: string) : string = input
+    let part2 (input: string) : string =
+        let roomSize = 4
+
+        let inputLines = input |> lines
+
+        let inputLines2 =
+            Array.append inputLines.[0..2] (Array.append [| "  #D#C#B#A#"; "  #D#B#A#C#" |] inputLines.[3..4])
+
+        inputLines2
+        |> Array.map
+            (fun l ->
+                if l.Length = 13 then
+                    Array.ofSeq l
+                else
+                    Array.ofSeq (l + "  "))
+        |> Array.transpose
+        |> parseInput roomSize
+        |> move roomSize [] 0
+        |> Option.get
+        |> string

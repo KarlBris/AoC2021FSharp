@@ -383,4 +383,29 @@ module TestRunner =
 
     let examples23_2 = examples23_1
 
-    let exampleResults23_2 = [| "" |]
+    let exampleResults23_2 = [| "44169" |]
+
+
+    // Day 24
+    let input24 = getInput 24
+
+    let examples24_1 = [| "" |]
+
+    let exampleResults24_1 = [| "" |]
+
+    let examples24_2 = examples24_1
+
+    let exampleResults24_2 = [| "" |]
+
+
+    // Day 25
+    let input25 = getInput 25
+
+    let examples25_1 =
+        [| "v...>>.vv>\n.vv>>.vv..\n>>.>v>...v\n>>v>>.>.v.\nv>v.vv.v..\n>.>>..v...\n.vv..>.>v.\nv.v..>>v.v\n....v..v.>" |]
+
+    let exampleResults25_1 = [| "58" |]
+
+    let examples25_2 = examples25_1
+
+    let exampleResults25_2 = [| "" |]
