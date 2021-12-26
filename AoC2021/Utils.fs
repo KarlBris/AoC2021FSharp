@@ -25,3 +25,5 @@ module Utils =
         | _ -> failwithf "Array does not contain exactly two elements! %A" arrayWithTwoElements
 
     let eMod (a: int) (b: int) : int = ((a % b) + b) % b
+
+    let eMod64 (a: int64) (b: int64) : int64 = ((a % b) + b) % b
